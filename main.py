@@ -55,7 +55,7 @@ def start():
             bit = polymath.Bit(data={
                 'id': item['id'],
                 'text': item['metadata']['text'],
-                'token_count': item['metadata']['token_count'],
+                'token_count': item['metadata'].get('token_count'),
                 'access_tag': item['metadata'].get('access_tag'),
                 'info': {
                     'url': item['metadata']['url'],
