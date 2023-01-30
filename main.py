@@ -2,13 +2,12 @@ import argparse
 import os
 import traceback
 
+import numpy as np
+import pinecone
+import polymath
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 from flask_compress import Compress
-
-import polymath
-import pinecone
-
 from polymath.library import vector_from_base64
 
 DEFAULT_TOKEN_COUNT = 1000
@@ -22,30 +21,31 @@ PINECONE_ENVIRONMENT = "us-west1-gcp"  # TODO: Make this configurable
 
 config = polymath.host_config()
 
-
 @app.route("/", methods=["POST"])
 def start():
     try:
+        library = polymath.Library()
+        if library.embedding_model != request.form.get("query_embedding_model"):
+            raise Exception("Library embedding model mismatch")
+        if library.version != request.form.get('version', -1, type=int):
+            raise Exception("Library version mismatch")
         query_embedding = request.form.get("query_embedding")
-        query_embedding_model = request.form.get("query_embedding_model")
         count = request.form.get(
             "count", DEFAULT_TOKEN_COUNT, type=int)
         count_type = request.form.get("count_type")
-        version = request.form.get('version', -1, type=int)
-        sort = request.form.get('sort')
+        sort = request.form.get('sort')            
         sort_reversed = request.form.get('sort_reversed') is not None
         seed = request.form.get('seed')
         omit = request.form.get('omit')
         access_token = request.form.get('access_token', '')
-        library = polymath.Library()
         library.omit = 'embedding'
         pinecone.init(
             api_key=PINECONE_API_KEY,
             environment=PINECONE_ENVIRONMENT)
         index = pinecone.Index('polymath')
-        embedding = vector_from_base64(query_embedding).tolist()
+        embedding = vector_from_base64(query_embedding).tolist() if sort == 'similarity' else np.random.rand(1536)
         result = index.query(
-            namespace='wdl',
+            namespace=config['pinecone']['namespace'],
             top_k=10,
             include_metadata=True,
             vector=embedding

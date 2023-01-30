@@ -29,6 +29,10 @@
       }
     },
 
+    "pinecone": {
+      "namespace": "wdl"
+    },
+
     "tokens": {
       "dimitri@glazyglaz.com": {
         "token": "<A cryptographically secure string that is treated as a secret. It should be given to the user so they can put it in their \"token\" field in their `directory.SECRET.json` associated with this endpoint>",
