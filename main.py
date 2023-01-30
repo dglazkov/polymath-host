@@ -43,7 +43,7 @@ def start():
             api_key=PINECONE_API_KEY,
             environment=PINECONE_ENVIRONMENT)
         index = pinecone.Index('polymath')
-        embedding = vector_from_base64(query_embedding).tolist() if sort == 'similarity' else np.random.rand(1536)
+        embedding = vector_from_base64(query_embedding).tolist() if sort == 'similarity' else np.random.rand(1536).tolist()
         result = index.query(
             namespace=config['pinecone']['namespace'],
             top_k=10,
