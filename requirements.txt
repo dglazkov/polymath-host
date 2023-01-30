@@ -1,0 +1,5 @@
+flask
+Flask-Compress
+python-dotenv
+pinecone-client
+git+https://github.com/dglazkov/polymath.git

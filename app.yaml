@@ -1,0 +1,14 @@
+runtime: python310
+
+instance_class: F4
+
+app_engine_apis: true
+
+handlers:
+- url: /
+  script: auto
+  secure: always
+
+- url: /static
+  static_dir: host/static
+  secure: always

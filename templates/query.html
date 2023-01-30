@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ config.webclient.headername }} Polymath</title>
+  <link rel="stylesheet" href="static/output.css" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="static/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="static/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="static/favicon-16x16.png">
+  <link rel="shortcut icon" href="static/favicon.ico">
+  <link rel="manifest" href="static/site.webmanifest">
+</head>
+
+<body>
+  
+<header class="flex justify-center items-center text-center p-4">
+  <a href="/" id="logo" title="Ok, query me again!"
+     class="rounded-tl-[25%] rounded-br-[25%] rounded-tr-[10%] rounded-bl-[10%] overflow-hidden hover:brightness-110 active:brightness-110">
+    <img src="static/polymath-logo-120x120.png" width="120" height="120" class="float-left" alt="">
+  </a>
+  <div class="px-5 float-right border-b-0">
+    <h1 class="text-2xl md:text-3xl text-center font-bold">{{ config.webclient.headername }} Polymath</h1>
+    <div class="w-full border-t-0 text-sm md:text-base">This is a <a href="https://github.com/dglazkov/polymath" class="text-indigo-600 hover:text-indigo-700 hover:underline">polymath</a> endpoint.</div>
+  </div>
+</header>
+
+<main id="surface" class="p-4"></main>
+
+<footer class="p-4">
+  {% if config.restricted_message %}
+  <p class="py-1">This server has additional private content that requires an access token to access. {{ config.restricted_message }}</p>
+  {% endif %}
+
+  <p class="italic py-1 border-t border-indigo-500/30 hover:border-indigo-500/60">
+    Want your own Polymath? <a href="https://github.com/dglazkov/polymath#readme" class="text-indigo-600 hover:text-indigo-700 hover:underline">Come get started!</a>
+  </p>
+</footer>
+
+<!-- View templates -->
+<template id="query-view">
+  <div>
+    <div class="relative mt-1 rounded-md shadow-sm">
+      <input type="text" name="query" placeholder="{{ config.webclient.placeholder }}" id="query" class="w-full input-primary">
+      <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+        <!-- Heroicon name: mini/cursor-arrow-rays -->
+        <svg id="random-query" class="h-5 w-5 text-gray-400 hover:brightness-110 active:brightness-110 hover:cursor-pointer" xmlns="http://www.w3.org/2000/svg" fill="none"
+          viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
+        </svg>
+      </div>
+    </div>
+    <div class="py-4">
+      <button id="ask" type="button" class="btn-primary disabled:opacity-50">Ask Me</button>
+    </div>
+  </div>
+
+  {% if config.restricted %}
+  <details class="text-right -mt-12">
+    <summary id="more-options" class="text-indigo-600 hover:text-indigo-700 hover:underline hover:cursor-pointer">More options</summary>
+    <div>
+      <label for="access_token">access_token (optional):</label>
+      <input type="text" name="access_token" id="access_token" class="input-primary">
+    </div>
+    <div class="py-4">
+      <button id="clear" class="btn-primary">Clear Key and Access Token</button>
+    </div>
+  </details>
+  {% endif %}
+
+  <script action="init" arguments="controller,query_value">
+    const textInput = this.querySelector('#query');
+    textInput.value = query_value;
+    const access_token = this.querySelector('#access_token');
+    const askButton = this.querySelector('#ask');
+    const askServer = () => controller.askServer({
+      query: textInput.value,
+      access_token: access_token?.value,
+    });
+    if (!query_value) {
+      askButton.disabled = true;
+    }
+    textInput.addEventListener('input', (event) => {
+      askButton.disabled = event.target.value.length < 3;
+    });
+    textInput.addEventListener('keyup', (event) => {
+      askButton.disabled = textInput.value.length < 3;
+      if (event.keyCode != 13 || askButton.disabled) {
+        return;
+      }
+      askServer();
+    });
+    askButton.addEventListener('click', askServer);
+    this.querySelector('#clear')?.addEventListener('click',
+      () => controller.clearKeys());
+
+    {% if config.webclient.fun_queries %}
+    let funQueries = {{ config.webclient.fun_queries | safe }};
+    {% else %}
+    let funQueries = ["What is a Polymath?", "What has been written about Generative AI?"];
+    {% endif %}
+
+    this.querySelector('#random-query').addEventListener('click', () => {
+      textInput.value = funQueries[Math.floor(Math.random() * funQueries.length)]
+      askButton.disabled = false;
+    });
+
+    document.querySelector('#logo').addEventListener('click', (event) => {
+      textInput.value = '';
+      textInput.focus();
+      event.preventDefault();
+    }, false);
+
+  </script>
+</template>
+
+<template id="request-key-view">
+  <label>
+    To query this server, enter your Open AI API key:
+    <input name="key" type="text" class="w-full input-primary">
+  </label>
+  <div class="py-4">
+    <button class="btn-primary">Save Key</button>
+  </div>
+  <p>
+    <em>Your Open AI API key is stored locally and only ever transmitted directly to openai.com</em>
+  </p>
+  <script action="init" arguments="controller">
+    const button = this.querySelector('button');
+    const input = this.querySelector('input');
+    button.addEventListener('click', () => controller.storeKey(input.value));
+  </script>
+</template>
+
+<template id="loading-view">
+  <div class="py-4 mt-4">
+    <div id="past"></div>
+    <span id="current"></span><span id="ellipsis"></span>
+  </div>
+  <script action="show" arguments="onprogress">
+    const ellipsis = this.querySelector('#ellipsis');
+    const current = this.querySelector('#current');
+    const past = this.querySelector('#past');
+    let dots = 0;
+
+    onprogress((status) => {
+      const div = document.createElement('div');
+      const currentStatus = current.textContent;
+      if (currentStatus) {
+        div.innerHTML = `${currentStatus} &#9989;`;
+        past.append(div);
+      }
+      current.textContent = status;
+    });
+
+    this.loadingInterval = setInterval(() => {
+      dots = (dots + 1) % 4;
+      ellipsis.textContent = '.'.repeat(dots);
+    }, 300);
+  </script>
+  <script action="hide">
+    if (this.loadingInterval) clearInterval(this.loadingInterval);
+  </script>
+</template>
+
+<template id="results-view">
+  <div id="results" class="py-4 mt-4">
+    <h2 class="text-xl font-bold border-b border-indigo-500/30 hover:border-indigo-500/60">
+      Results
+    </h2>
+    <div id="completion" class="p-2"></div>
+  </div>
+  
+  <div class="py-4">
+    <h2 class="text-xl font-bold border-b border-indigo-500/30 hover:border-indigo-500/60">
+      Sources
+    </h2>
+    <ul id="sources" role="list" class="divide-y divide-gray-200">
+    </ul>
+  </div>
+  
+  <script action="show" arguments="completion,infos">
+    function removeDuplicates(arr) {
+      let seen = new Set();
+      return arr.filter(item => {
+        if (!seen.has(item.url)) {
+          seen.add(item.url);
+          return true;
+        }
+        return false;
+      });
+    }
+
+    this.querySelector('#completion').textContent = completion;
+    this.querySelector('#sources').innerHTML = removeDuplicates(infos).map(info => {
+      let escapedTitle = (info.description || info.title).replace(/"/g, "\\\"");
+      let prefix = "";
+
+      {% if config.webclient.source_prefixes %}
+      let sourcePrefixes = {{ config.webclient.source_prefixes | safe }};
+
+      for (let url in sourcePrefixes) {
+        if (info.url.startsWith(url)) {
+          prefix = sourcePrefixes[url];
+          break;
+        }
+      }
+      {% endif %}      
+
+      return `<li class="flex py-4"><div class="ml-3">
+          <p class="text-sm font-medium text-gray-900 hover:text-indigo-700"><a href="${info.url}"
+            title="${escapedTitle}">${prefix}${info.title || info.description || info.url}</a></p></div></li>`;
+    }).join('\n');
+  </script>
+</template>
+
+<template id="error-view">
+  <h3>Error</h3>
+  <div id="message"></div>
+  <script action="show" arguments="error">
+    const message = this.querySelector('#message');
+    message.textContent = error;
+  </script>
+</template>
+
+<script type="module">
+
+  // Contains all UI-specific logic.
+  class Controller {
+    store;
+    views;
+    results;
+    url;
+
+    constructor() {
+      this.store = new Keystore();
+      this.views = new Views();
+      this.results = null;
+      this.url = new URL(window.location);
+    }
+
+    async storeKey(key) {
+      const openai = new OpenAI(key);
+      if (!await openai.validate()) {
+        this.results = {
+          error: 'Invalid API key'
+        };
+        this.start();
+        return;
+      }
+      this.store.openai_api_key = key;
+      this.results = null;
+      this.start();
+    }
+
+    askServer({ query, access_token }) {
+      this.url.searchParams.set('query', query);
+      if (access_token)
+        this.store.access_token = access_token;
+
+      window.history.pushState({}, '', this.url);
+      this.start();
+    }
+
+    clearKeys() {
+      this.store.clear();
+      this.start();
+    }
+
+    async start() {
+      this.views.clear();
+      {% if config.default_api_key %}
+      this.store.openai_api_key = "{{ config.default_api_key}}";
+      {% endif %}
+
+      if (!this.store.openai_api_key) {
+        this.views.show('request-key', this);
+      } else {
+        const access_token = this.url.searchParams.get('secret');
+        if (access_token) {
+          this.store.access_token = access_token;
+          this.url.searchParams.delete('secret');
+          window.location.assign(this.url);
+          return;
+        }
+        const query = this.url.searchParams.get('query');
+        this.views.show('query', this, query);
+        if (!query) {
+          return;
+        }
+        const pipe = new Pipe();
+        this.views.show('loading', pipe.out);
+        const answers = await Polymath.synthesizeAnswers({
+          query: query,
+          key: this.store.openai_api_key,
+          access_token: this.store.access_token,
+          progress: pipe.in
+        });
+        this.views.hide('loading');
+        this.views.show('query', this, query);
+        if (answers.error) {
+          this.views.show('error', answers.error);
+        } else {
+          this.views.show('results', answers.completion, answers.infos);
+        }
+      }
+      if (this.results && this.results.error) {
+        this.views.show('error', this.results.error);
+      }
+    }
+  }
+
+  // Boring support classes.
+
+  class Pipe {
+    in;
+    out;
+    sink;
+    constructor() {
+      this.in = (message) => {
+        this.sink(message);
+      }
+      this.out = (sink) => {
+        this.sink = sink;
+      }
+    }
+  }
+
+  class Keystore {
+    get openai_api_key() {
+      return localStorage.getItem('openai_api_key');
+    }
+
+    set openai_api_key(value) {
+      localStorage.setItem('openai_api_key', value);
+    }
+
+    get access_token() {
+      return localStorage.getItem('access_token');
+    }
+
+    set access_token(value) {
+      localStorage.setItem('access_token', value);
+    }
+
+    clear() {
+      localStorage.removeItem('openai_api_key');
+      localStorage.removeItem('access_token');
+    }
+  }
+
+  class Polymath {
+    async ask(query) {
+      const form = new FormData();
+      form.append('version', '1');
+      form.append('query_embedding_model', 'openai.com:text-embedding-ada-002');
+      form.append('sort', 'similarity');
+      for (const [key, value] of Object.entries(query)) {
+        form.append(key, value);
+      }
+      const url = new URL(window.location);
+      const result = await (await fetch(url, {
+        method: 'POST',
+        body: form
+      })).json();
+      return result;
+    }
+
+    static encode_embedding(data) {
+      return btoa(String.fromCharCode(...(new Uint8Array(new Float32Array(data).buffer))));
+    }
+
+    static create_prompt({ query, results }) {
+      const context = results.bits.map(chunk => chunk.text).join('\n');
+      return `Answer the question as truthfully as possible using the provided context, and if don't have the answer, say in a friendly tone that this Polymath instance does not contain the answer and suggest looking for this information elsewhere.\n\nContext:\n${context} \n\nQuestion:\n${query}\n\nAnswer:`;
+    }
+
+    static async synthesizeAnswers({ key, query, access_token, progress }) {
+      const server = new Polymath();
+      const openai = new OpenAI(key);
+      const result = {
+        error: null,
+        infos: null,
+        completion: null,
+      }
+
+      progress('Creating embedding for the query');
+      const embedding = await openai.embedding(query);
+      if (embedding.error) {
+        result.error = embedding.error;
+        return result;
+      }
+
+      progress('Asking Polymath to generate context');
+      const query_embedding = Polymath.encode_embedding(embedding.result);
+      access_token = access_token || ''
+      const polymath_results = await server.ask({ query_embedding, access_token });
+      if (polymath_results.error) {
+        result.error = polymath_results.error;
+        return result;
+      }
+
+      progress('Creating completion from context');
+      const context = Polymath.create_prompt({
+        query: query,
+        results: polymath_results,
+      });
+      const completion_result = await openai.completion(context);
+      if (completion_result.error) {
+        result.error = completion_result.error;
+        return result;
+      }
+      result.infos = polymath_results.bits.map(entry => entry.info);
+      result.completion = completion_result.result;
+      progress('');
+      return result;
+    }
+  }
+
+  class OpenAI {
+    constructor(key) {
+      this._key = key;
+    }
+
+    async _call_api(type, payload, result_getter) {
+      const url = `https://api.openai.com/v1/${type}`;
+      const result = await (await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this._key}`,
+        },
+        body: JSON.stringify(payload)
+      })).json();
+      if (result.error)
+        return {
+          error: result.error.message
+        }
+      return {
+        result: result_getter(result)
+      };
+    }
+
+    async validate() {
+      const url = `https://api.openai.com/v1/models`;
+      const result = await (await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this._key}`,
+        }
+      })).json();
+      return !result.error;
+    }
+
+    async completion(prompt) {
+      return await this._call_api('completions', {
+        model: 'text-davinci-003',
+        prompt: prompt,
+        max_tokens: 1024,
+        temperature: 0,
+        top_p: 1,
+        n: 1,
+        stream: false,
+        logprobs: null,
+        stop: '\n'
+      }, out => out.choices[0].text);
+    }
+
+    async embedding(query) {
+      return await this._call_api('embeddings', {
+        input: query,
+        model: 'text-embedding-ada-002'
+      }, out => out.data[0].embedding);
+    }
+  }
+
+  class Views {
+    constructor() {
+      this._surface = document.querySelector('#surface');
+    }
+
+    _makeIds(viewId) {
+      return {
+        templateId: `${viewId}-view`,
+        instanceId: `${viewId}-view-instance`,
+      };
+    }
+
+    _runLogic(viewId, name, data) {
+      const { templateId, instanceId } = this._makeIds(viewId);
+      let instance = document.getElementById(instanceId);
+      let template = document.getElementById(templateId);
+      let script = template.content.querySelector(`script[action="${name}"]`);
+      if (script) {
+        const attr = script.getAttribute('arguments');
+        const args = attr ? script.getAttribute('arguments').split(',') : [];
+        const f = Function(...args, script.textContent);
+        f.call(instance, ...data);
+      }
+      return null;
+    }
+
+    init(viewId, ...data) {
+      const { templateId, instanceId } = this._makeIds(viewId);
+      const template = document.getElementById(templateId);
+      const clone = template.content.cloneNode(true);
+      [...clone.querySelectorAll('script')].forEach(script => script.remove());
+      const instance = document.createElement('div');
+      instance.appendChild(clone);
+      instance.id = instanceId;
+      this._surface.appendChild(instance);
+
+      this._runLogic(viewId, 'init', data);
+    }
+
+    show(viewId, ...data) {
+      const { templateId, instanceId } = this._makeIds(viewId);
+      let instance = document.getElementById(instanceId);
+      if (instance) {
+        instance.hidden = false;
+      } else {
+        this.init(viewId, ...data);
+      }
+      this._runLogic(viewId, 'show', data);
+    }
+
+    hide(viewId, ...data) {
+      const instance = document.getElementById(`${viewId}-view-instance`);
+      if (!instance) {
+        return;
+      }
+      instance.hidden = true;
+      this._runLogic(viewId, 'hide', data);
+    }
+
+    clear() {
+      this._surface.textContent = '';
+    }
+  }
+
+  const controller = new Controller();
+  controller.start();
+
+</script>
+</body>
+</html>
