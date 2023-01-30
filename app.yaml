@@ -8,5 +8,5 @@ handlers:
   secure: always
 
 - url: /static
-  static_dir: host/static
+  static_dir: static
   secure: always
