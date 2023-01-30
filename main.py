@@ -20,7 +20,6 @@ load_dotenv()
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = "us-west1-gcp"  # TODO: Make this configurable
 
-# library = polymath.load_libraries(library_filename, True)
 config = polymath.host_config()
 
 

@@ -1,0 +1,40 @@
+{
+
+    "default_private_access_tag": "unpublished",
+
+    "default_api_key": "<Be careful. If you use this, it will be used... and in the source>",
+    
+    "restricted": {
+      "count": true,
+      "message": "Contact alex@komoroske.com for an access_token."
+    },
+
+    "twitter": {
+      "handle": "dalmaer"
+    },
+
+    "webclient": {
+      "headername": "Dion's",
+      "placeholder": "What do you want to learn from the Polymath?",
+      "fun_queries": [
+        "What is the best side effect of using an AI assistant?",
+        "Tell me a story about OrderedJSON",
+        "What is an Ajaxian?",
+        "What happened to webOS?",
+        "What is progressive about the Web?"
+      ],
+      "source_prefixes": {
+        "https://remix.run/": "Remix: ",
+        "https://reactrouter.com/": "React Router: "
+      }
+    },
+
+    "tokens": {
+      "dimitri@glazyglaz.com": {
+        "token": "<A cryptographically secure string that is treated as a secret. It should be given to the user so they can put it in their \"token\" field in their `directory.SECRET.json` associated with this endpoint>",
+        "description": "<An optional string where you can store notes about this user or record>",
+        "access_tags": ["unpublished"]
+      }
+    }
+
+  }
