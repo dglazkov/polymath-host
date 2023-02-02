@@ -1,6 +1,7 @@
 import argparse
 import os
 import traceback
+from urllib.parse import urlparse
 
 import numpy as np
 import pinecone
@@ -8,6 +9,7 @@ import polymath
 from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 from flask_compress import Compress
+from google.cloud import firestore
 from polymath.library import vector_from_base64
 
 DEFAULT_TOKEN_COUNT = 1000
@@ -16,15 +18,27 @@ app = Flask(__name__)
 Compress(app)
 
 load_dotenv()
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = "us-west1-gcp"  # TODO: Make this configurable
 
-config = polymath.host_config()
+
+class ConfigStore:
+    def __init__(self):
+        db = firestore.Client()
+        self.sites = db.collection('sites')
+
+    def get(self, base_url):
+        slug = urlparse(base_url).hostname.split('.')[0]
+        return self.sites.document(slug).get().to_dict()
+
+
+store = ConfigStore()
+
 
 @app.route("/", methods=["POST"])
 def start():
     try:
         library = polymath.Library()
+        config = store.get(request.base_url)
         if library.embedding_model != request.form.get("query_embedding_model"):
             raise Exception("Library embedding model mismatch")
         if library.version != request.form.get('version', -1, type=int):
@@ -33,17 +47,21 @@ def start():
         count = request.form.get(
             "count", DEFAULT_TOKEN_COUNT, type=int)
         count_type = request.form.get("count_type")
-        sort = request.form.get('sort')            
+        sort = request.form.get('sort')
         sort_reversed = request.form.get('sort_reversed') is not None
         seed = request.form.get('seed')
         omit = request.form.get('omit')
         access_token = request.form.get('access_token', '')
         library.omit = 'embedding'
         pinecone.init(
-            api_key=PINECONE_API_KEY,
+            api_key=os.getenv("PINECONE_API_KEY"),
             environment=PINECONE_ENVIRONMENT)
         index = pinecone.Index('polymath')
-        embedding = vector_from_base64(query_embedding).tolist() if sort == 'similarity' else np.random.rand(1536).tolist()
+        embedding = None
+        if sort == 'similarity':
+            embedding = vector_from_base64(query_embedding).tolist()
+        else:
+            embedding = np.random.rand(1536).tolist()
         result = index.query(
             namespace=config['pinecone']['namespace'],
             top_k=10,
@@ -68,12 +86,13 @@ def start():
 
     except Exception as e:
         return jsonify({
-            "error": f"{e}\n{traceback.print_exc()}"
+            "error": f"{e}\n{traceback.format_exc()}"
         })
 
 
 @app.route("/", methods=["GET"])
 def start_sample():
+    config = store.get(request.base_url)
     return render_template("query.html", config=config)
 
 

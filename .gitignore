@@ -5,5 +5,6 @@ env/
 *.pyc
 __pycache__
 
-# Ensure that no one checks in the secret config
+# Ensure that no one checks in the secret config or scratch files
 *.SECRET.*
+scratch/
