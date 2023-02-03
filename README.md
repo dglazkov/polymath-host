@@ -2,7 +2,7 @@
 
 ## Setting up Firestore
 
-Follow [Google Cloud instructions](https://cloud.google.com/firestore/docs/create-database-server-client-library) on how set up Firestore.
+Follow [Google Cloud instructions](https://cloud.google.com/firestore/docs/create-database-server-client-library) on how set up Firestore. Make sure to use `Native Mode` vs. `Datastore Mode` which is the default.
 
 One non-obvious bit in the instructions above setting up the Service Account credentials. Service Account is the account that runs your project's instance of App Engine, and this step is necessary to reproduce the App Engine environment locally.
 
@@ -25,7 +25,7 @@ Next, create configuration using [Firestore data editor](https://console.cloud.g
 
 1. At root, create collection called `sites`.
 
-2. For each site, create a document. The name of the document must be the first "slug" of the URL. For example, for `polymath.glazkov.com` it will be `polymath`. Don't forget to create one for local development. It will likely be called `127`.
+2. For each site, create a document. The name of the document must be the first "slug" of the URL. For example, for `polymath.glazkov.com` it will be `polymath`. Don't forget to create one for local development. It will likely be called `127`, and once you setup your production version you can `Add similar document` to make it faster.
 
 3. The document must have the following structure (name: type convention):
 
