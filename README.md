@@ -4,6 +4,8 @@
 
 Follow [Google Cloud instructions](https://cloud.google.com/firestore/docs/create-database-server-client-library) on how set up Firestore. Make sure to use `Native Mode` vs. `Datastore Mode` which is the default.
 
+You can create a firestore for your current project by running `gcloud firestore databases create` and choosing the region you want to use (note you cannot change this later!)
+
 You'll need to make credentials available to local libraries. You can do this by running `gcloud auth application-default login`. This will open a browser to complete the flow, and you should only need to do it once.
 
 Next, create configuration using [Firestore data editor](https://console.cloud.google.com/firestore/data/panel)
