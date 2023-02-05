@@ -4,22 +4,7 @@
 
 Follow [Google Cloud instructions](https://cloud.google.com/firestore/docs/create-database-server-client-library) on how set up Firestore. Make sure to use `Native Mode` vs. `Datastore Mode` which is the default.
 
-One non-obvious bit in the instructions above setting up the Service Account credentials. Service Account is the account that runs your project's instance of App Engine, and this step is necessary to reproduce the App Engine environment locally.
-
-To get this moving, we'll need to create a Service Account key. Here's how:
-
-1. Go to [Credentials](https://console.cloud.google.com/apis/credentials) page on Cloud console.
-
-2. Click on the Service Account link (it will be of the form `{project-id}@appspot.gserviceaccount.com`.)
-
-3. Select the `KEYS` tab and select `ADD KEY` -> `Create new key`. This will result in a download of a new key.
-
-4. Move the key to someplace where you'll remember, like `./service-account-key.SECRET.json`. 
-
-5. Run this in terminal anytime you want to run the server locally. Don't put this into `.bashrc` or `.zhrc`, since it is project-dependent. 
-```shell
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/key" 
-```
+You'll need to make credentials available to local libraries. You can do this by running `gcloud auth application-default login`. This will open a browser to complete the flow, and you should only need to do it once.
 
 Next, create configuration using [Firestore data editor](https://console.cloud.google.com/firestore/data/panel)
 
