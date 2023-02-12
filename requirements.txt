@@ -3,4 +3,4 @@ flask
 Flask-Compress
 python-dotenv
 pinecone-client
-git+https://github.com/dglazkov/polymath.git
+git+https://github.com/dglazkov/polymath.git@cda3b16
