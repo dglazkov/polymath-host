@@ -68,7 +68,12 @@ def start():
             include_metadata=True,
             vector=embedding
         )
+        token_count = 0
         for item in result['matches']:
+            token_count += item['metadata'].get('token_count')
+            if token_count > DEFAULT_TOKEN_COUNT:
+                print(f'Breaking at {token_count} tokens')
+                break
             bit = polymath.Bit(data={
                 'id': item['id'],
                 'text': item['metadata']['text'],
