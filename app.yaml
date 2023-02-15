@@ -2,6 +2,12 @@ runtime: python310
 
 instance_class: F4
 
+inbound_services:
+- warmup
+
+automatic_scaling:
+  min_idle_instances: 1
+
 handlers:
 - url: /
   script: auto

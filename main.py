@@ -101,6 +101,11 @@ def start_sample():
     return render_template("query.html", config=config)
 
 
+@app.route('/_ah/warmup')
+def warmup():
+    return ('', 204)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
