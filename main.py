@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 from flask_compress import Compress
 from flask_cors import CORS
-
 from google.cloud import firestore
 from polymath.library import vector_from_base64
 
@@ -19,6 +18,7 @@ DEFAULT_TOKEN_COUNT = 1000
 app = Flask(__name__)
 CORS(app)
 Compress(app)
+CORS(app)
 
 load_dotenv()
 PINECONE_ENVIRONMENT = "us-west1-gcp"  # TODO: Make this configurable
