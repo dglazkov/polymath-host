@@ -1,6 +1,7 @@
 google-cloud-firestore
 flask
 Flask-Compress
+Flask-Cors==3.0.10
 python-dotenv
 pinecone-client
 git+https://github.com/dglazkov/polymath.git@cda3b16
