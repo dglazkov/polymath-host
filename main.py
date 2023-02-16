@@ -18,7 +18,6 @@ DEFAULT_TOKEN_COUNT = 1000
 app = Flask(__name__)
 CORS(app)
 Compress(app)
-CORS(app)
 
 load_dotenv()
 PINECONE_ENVIRONMENT = "us-west1-gcp"  # TODO: Make this configurable
