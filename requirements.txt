@@ -3,5 +3,4 @@ flask
 Flask-Compress
 Flask-Cors==3.0.10
 python-dotenv
-pinecone-client
-git+https://github.com/dglazkov/polymath.git@cda3b16
+git+https://github.com/dglazkov/polymath.git@b68012a41c3050d8cca2ebd2b0904f25bdb80166
